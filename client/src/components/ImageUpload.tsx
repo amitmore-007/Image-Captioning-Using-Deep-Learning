@@ -74,14 +74,14 @@ export function ImageUpload() {
     },
     maxFiles: 10,
     maxSize: 20 * 1024 * 1024, // 20MB
-    noClick: true, // Disable click on the dropzone area
+    noClick: false, // Enable click to open file dialog
   });
 
   return (
     <Card className="p-6">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer
           ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'}`}
       >
         <input {...getInputProps()} />
