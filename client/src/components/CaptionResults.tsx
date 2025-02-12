@@ -28,26 +28,23 @@ export function CaptionResults({ images, onRemove }: CaptionResultsProps) {
   return (
     <div className="grid gap-6">
       {images.map((image) => (
-        <Card key={image.id} className="p-6">
+        <Card key={image.id} className="p-6 bg-white">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="relative">
               <Button
                 variant="outline"
                 size="icon"
-                className="absolute -right-3 -top-3 z-10 bg-white"
+                className="absolute -right-3 -top-3 z-10 bg-white hover:bg-gray-100"
                 onClick={() => onRemove(image.id)}
               >
                 <X className="w-4 h-4" />
               </Button>
-              <div className="w-full aspect-video bg-gray-100 rounded-lg relative overflow-hidden">
+              <div className="w-full aspect-square bg-gray-100 rounded-lg relative overflow-hidden">
                 <img
                   src={`/api/images/${image.id}/preview`}
                   alt={image.filename}
                   className="w-full h-full object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    console.error(`Failed to load image: ${target.src}`);
-                  }}
+                  loading="lazy"
                 />
               </div>
               <p className="mt-2 text-sm text-gray-500">
@@ -56,17 +53,17 @@ export function CaptionResults({ images, onRemove }: CaptionResultsProps) {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Generated Captions:</h3>
+              <h3 className="font-semibold mb-4 text-gray-900">Generated Captions:</h3>
               <ul className="space-y-2">
                 {getUniqueCaptions(image.captions).map((caption, index) => (
                   <li
                     key={index}
-                    className="p-3 bg-gray-50 rounded-lg text-sm flex justify-between items-start gap-2"
+                    className="p-3 bg-gray-50 rounded-lg text-sm flex justify-between items-start gap-2 group hover:bg-gray-100"
                   >
-                    <span>{caption}</span>
+                    <span className="text-gray-700">{caption}</span>
                     <button
                       onClick={() => copyToClipboard(caption)}
-                      className="p-1 hover:bg-gray-200 rounded shrink-0"
+                      className="p-1 hover:bg-gray-200 rounded shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       title="Copy caption"
                     >
                       <Copy className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card } from "@/components/ui/card";
 import { ImagePreview } from "./ImagePreview";
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 export function ImageUpload() {
   const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -26,7 +25,6 @@ export function ImageUpload() {
       queryClient.invalidateQueries({ queryKey: ["/api/images"] });
       setSelectedFiles([]);
       toast({
-        title: "Success",
         description: "Images uploaded and captions generated",
       });
     },
@@ -40,7 +38,10 @@ export function ImageUpload() {
   });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setSelectedFiles(prev => [...prev, ...acceptedFiles].slice(0, 10)); // Limit to 10 files total
+    setSelectedFiles(prev => {
+      const newFiles = [...prev, ...acceptedFiles];
+      return newFiles.slice(0, 10); // Limit to 10 files total
+    });
   }, []);
 
   const removeFile = (index: number) => {
@@ -48,6 +49,15 @@ export function ImageUpload() {
   };
 
   const handleUpload = () => {
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one image",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const formData = new FormData();
     selectedFiles.forEach((file) => {
       formData.append("files", file);
@@ -71,13 +81,12 @@ export function ImageUpload() {
     <Card className="p-6">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-[#2563EB] bg-blue-50' : 'border-gray-300 hover:border-[#2563EB]'}`}
-        onClick={open} // Enable click on the dropzone area
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
+          ${isDragActive ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'}`}
       >
         <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-[#4B5563] mb-2">
+        <p className="text-gray-600 mb-2">
           {isDragActive ? "Drop your images here" : "Drag & drop images here, or click to select"}
         </p>
         <p className="text-sm text-gray-500">
@@ -88,12 +97,12 @@ export function ImageUpload() {
       {selectedFiles.length > 0 && (
         <div className="mt-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold">Selected Images</h3>
+            <h3 className="font-semibold">Selected Images ({selectedFiles.length}/10)</h3>
             <Button 
               variant="outline"
               size="sm"
               onClick={open}
-              disabled={selectedFiles.length >= 10}
+              disabled={selectedFiles.length >= 10 || uploadMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add More
@@ -101,10 +110,11 @@ export function ImageUpload() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {selectedFiles.map((file, index) => (
-              <div key={`${file.name}-${index}`} className="relative">
+              <div key={`${file.name}-${index}`} className="relative group">
                 <button
                   onClick={() => removeFile(index)}
                   className="absolute -right-2 -top-2 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                  disabled={uploadMutation.isPending}
                 >
                   <X className="w-4 h-4 text-gray-600" />
                 </button>
@@ -114,7 +124,7 @@ export function ImageUpload() {
           </div>
           <Button
             className="mt-4 w-full"
-            disabled={uploadMutation.isPending}
+            disabled={uploadMutation.isPending || selectedFiles.length === 0}
             onClick={handleUpload}
           >
             {uploadMutation.isPending ? "Processing..." : "Generate Captions"}

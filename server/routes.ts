@@ -28,13 +28,16 @@ export function registerRoutes(app: Express) {
 
       const results = await Promise.all(files.map(async (file) => {
         try {
+          // Convert buffer to base64 for storage
+          const base64Data = file.buffer.toString('base64');
+
           // Generate 3 captions in parallel and take the first one that completes
           const captionPromises = Array(3).fill(null).map(async () => {
             try {
               const result = await hf.imageToText({
                 model: "Salesforce/blip-image-captioning-base",
-                data: Buffer.from(file.buffer),
-                wait_for_model: false // Don't wait for model to load if already loaded
+                data: file.buffer,
+                wait_for_model: false
               });
               return result.generated_text;
             } catch (error) {
@@ -45,19 +48,15 @@ export function registerRoutes(app: Express) {
 
           // Get unique captions, filtering out undefined and duplicates
           const allCaptions = await Promise.all(captionPromises);
-          const uniqueCaptions = Array.from(new Set(allCaptions.filter(Boolean))).filter(caption => 
-            caption && 
-            caption.trim() && 
-            caption.split(' ').length > 2 // Ensure caption has at least 3 words
-          );
+          const uniqueCaptions = Array.from(new Set(allCaptions.filter(Boolean)));
 
           // Store image data and buffer
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
-            data: file.buffer,
-            captions: uniqueCaptions
+            data: base64Data,
+            captions: uniqueCaptions,
           });
 
           return image;
@@ -74,7 +73,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add image preview endpoint
   app.get("/api/images/:id/preview", async (req, res) => {
     try {
       const image = await storage.getImageById(parseInt(req.params.id));
@@ -82,8 +80,9 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ message: "Image not found" });
       }
 
+      const buffer = Buffer.from(image.data, 'base64');
       res.setHeader('Content-Type', image.mimeType);
-      res.send(image.data);
+      res.send(buffer);
     } catch (error) {
       console.error("Failed to fetch image preview:", error);
       res.status(500).json({ message: "Failed to fetch image preview" });

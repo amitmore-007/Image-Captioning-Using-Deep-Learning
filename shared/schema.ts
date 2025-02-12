@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp, bytea } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,14 +8,14 @@ export const images = pgTable("images", {
   mimeType: text("mime_type").notNull(),
   size: text("size").notNull(),
   url: text("url"),
-  data: bytea("data").notNull(),
+  data: text("data").notNull(), // Store base64 encoded image data
   captions: jsonb("captions").notNull().$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertImageSchema = createInsertSchema(images).omit({
-  id: true,
-  createdAt: true,
+export const insertImageSchema = createInsertSchema(images, {
+  id: undefined,
+  createdAt: undefined,
 });
 
 export const uploadSchema = z.object({
