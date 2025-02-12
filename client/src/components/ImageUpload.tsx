@@ -1,17 +1,18 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card } from "@/components/ui/card";
 import { ImagePreview } from "./ImagePreview";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
+import { Upload, Plus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Image } from "@shared/schema";
 
 export function ImageUpload() {
   const { toast } = useToast();
-  
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
   const uploadMutation = useMutation<Image[], Error, FormData>({
     mutationFn: async (formData) => {
       const res = await fetch("/api/images", {
@@ -23,6 +24,7 @@ export function ImageUpload() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+      setSelectedFiles([]);
       toast({
         title: "Success",
         description: "Images uploaded and captions generated",
@@ -37,15 +39,41 @@ export function ImageUpload() {
     },
   });
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/images", {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Reset failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+      setSelectedFiles([]);
+      toast({
+        title: "Success",
+        description: "All images cleared",
+      });
+    },
+  });
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setSelectedFiles(prev => [...prev, ...acceptedFiles]);
+  }, []);
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = () => {
     const formData = new FormData();
-    acceptedFiles.forEach((file) => {
+    selectedFiles.forEach((file) => {
       formData.append("files", file);
     });
     uploadMutation.mutate(formData);
-  }, [uploadMutation]);
+  };
 
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/jpeg': ['.jpg', '.jpeg'],
@@ -58,6 +86,17 @@ export function ImageUpload() {
 
   return (
     <Card className="p-6">
+      <div className="flex justify-between mb-4">
+        <Button 
+          variant="outline" 
+          onClick={() => resetMutation.mutate()}
+          disabled={resetMutation.isPending}
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Reset All
+        </Button>
+      </div>
+
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -73,21 +112,41 @@ export function ImageUpload() {
           )}
         </p>
         <p className="text-sm text-gray-500">
-          Up to 10 images (JPG, PNG, WebP) &bull; 20MB total
+          Up to 10 images (JPG, PNG, WebP) • 20MB total
         </p>
       </div>
 
-      {acceptedFiles.length > 0 && (
+      {selectedFiles.length > 0 && (
         <div className="mt-6">
-          <h3 className="font-semibold mb-4">Selected Images</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold">Selected Images</h3>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => getRootProps().onClick?.()} 
+              className="ml-2"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add More
+            </Button>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {acceptedFiles.map((file) => (
-              <ImagePreview key={file.name} file={file} />
+            {selectedFiles.map((file, index) => (
+              <div key={file.name} className="relative">
+                <button
+                  onClick={() => removeFile(index)}
+                  className="absolute -right-2 -top-2 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                >
+                  <X className="w-4 h-4 text-gray-600" />
+                </button>
+                <ImagePreview file={file} />
+              </div>
             ))}
           </div>
           <Button
             className="mt-4 w-full"
             disabled={uploadMutation.isPending}
+            onClick={handleUpload}
           >
             {uploadMutation.isPending ? "Processing..." : "Generate Captions"}
           </Button>

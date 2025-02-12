@@ -1,11 +1,23 @@
 import { Card } from "@/components/ui/card";
+import { Copy } from "lucide-react";
 import type { Image } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 interface CaptionResultsProps {
   images: Image[];
 }
 
 export function CaptionResults({ images }: CaptionResultsProps) {
+  const { toast } = useToast();
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        description: "Caption copied to clipboard",
+      });
+    });
+  };
+
   return (
     <div className="grid gap-6">
       {images.map((image) => (
@@ -18,19 +30,26 @@ export function CaptionResults({ images }: CaptionResultsProps) {
                 className="w-full aspect-video object-cover rounded-lg"
               />
               <p className="mt-2 text-sm text-gray-500">
-                {image.filename} &bull; {formatSize(parseInt(image.size))}
+                {image.filename} • {formatSize(parseInt(image.size))}
               </p>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4 font-mono">Generated Captions:</h3>
               <ul className="space-y-2">
                 {image.captions.map((caption, index) => (
                   <li
                     key={index}
-                    className="p-3 bg-gray-50 rounded-lg font-mono text-sm"
+                    className="p-3 bg-gray-50 rounded-lg font-mono text-sm flex justify-between items-start gap-2"
                   >
-                    {caption}
+                    <span>{caption}</span>
+                    <button
+                      onClick={() => copyToClipboard(caption)}
+                      className="p-1 hover:bg-gray-200 rounded"
+                      title="Copy caption"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                   </li>
                 ))}
               </ul>

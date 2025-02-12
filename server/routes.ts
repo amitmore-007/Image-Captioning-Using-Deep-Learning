@@ -28,23 +28,35 @@ export function registerRoutes(app: Express) {
 
       const results = await Promise.all(files.map(async (file) => {
         try {
-          // Generate captions using Hugging Face
+          // Generate 3 captions in parallel and take the first one that completes
           const captionPromises = Array(3).fill(null).map(async () => {
-            const result = await hf.imageToText({
-              model: "Salesforce/blip-image-captioning-base",
-              data: Buffer.from(file.buffer),
-            });
-            return result.generated_text;
+            try {
+              const result = await hf.imageToText({
+                model: "Salesforce/blip-image-captioning-base",
+                data: Buffer.from(file.buffer),
+                wait_for_model: false // Don't wait for model to load if already loaded
+              });
+              return result.generated_text;
+            } catch (error) {
+              console.error("Caption generation error:", error);
+              return undefined;
+            }
           });
 
-          const captions = await Promise.all(captionPromises);
+          // Get unique captions, filtering out undefined and duplicates
+          const allCaptions = await Promise.all(captionPromises);
+          const uniqueCaptions = [...new Set(allCaptions.filter(caption => 
+            caption && 
+            caption.trim() && 
+            caption.split(' ').length > 2 // Ensure caption has at least 3 words
+          ))];
 
           // Store image data
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
-            captions: captions.filter(caption => caption !== undefined) as string[],
+            captions: uniqueCaptions
           });
 
           return image;
@@ -68,6 +80,16 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to fetch images:", error);
       res.status(500).json({ message: "Failed to fetch images" });
+    }
+  });
+
+  app.delete("/api/images", async (_req, res) => {
+    try {
+      await storage.deleteAllImages();
+      res.json({ message: "All images deleted" });
+    } catch (error) {
+      console.error("Failed to delete images:", error);
+      res.status(500).json({ message: "Failed to delete images" });
     }
   });
 

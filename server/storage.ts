@@ -5,6 +5,7 @@ import { desc } from "drizzle-orm";
 export interface IStorage {
   createImage(image: InsertImage): Promise<Image>;
   getAllImages(): Promise<Image[]>;
+  deleteAllImages(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -22,6 +23,10 @@ export class DatabaseStorage implements IStorage {
       .from(images)
       .orderBy(desc(images.createdAt));
     return allImages;
+  }
+
+  async deleteAllImages(): Promise<void> {
+    await db.delete(images);
   }
 }
 
