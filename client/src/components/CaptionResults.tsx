@@ -44,6 +44,10 @@ export function CaptionResults({ images, onRemove }: CaptionResultsProps) {
                   src={`/api/images/${image.id}/preview`}
                   alt={image.filename}
                   className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    console.error(`Failed to load image: ${target.src}`);
+                  }}
                 />
               </div>
               <p className="mt-2 text-sm text-gray-500">
@@ -52,12 +56,12 @@ export function CaptionResults({ images, onRemove }: CaptionResultsProps) {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4 font-mono">Generated Captions:</h3>
+              <h3 className="font-semibold mb-4">Generated Captions:</h3>
               <ul className="space-y-2">
                 {getUniqueCaptions(image.captions).map((caption, index) => (
                   <li
                     key={index}
-                    className="p-3 bg-gray-50 rounded-lg font-mono text-sm flex justify-between items-start gap-2"
+                    className="p-3 bg-gray-50 rounded-lg text-sm flex justify-between items-start gap-2"
                   >
                     <span>{caption}</span>
                     <button

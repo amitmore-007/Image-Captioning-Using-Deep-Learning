@@ -7,6 +7,7 @@ export const images = pgTable("images", {
   filename: text("filename").notNull(),
   mimeType: text("mime_type").notNull(),
   size: text("size").notNull(),
+  url: text("url"),
   captions: jsonb("captions").notNull().$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -34,7 +34,7 @@ export default function Landing() {
 
       {/* features */}
       <div className="flex flex-col gap-8 justify-center mt-2 mb-4">
-        <h2 className="text-[18px] font-bold text-white leading-[23px] font-spaceGrotesk dlig-on">Features</h2>
+        <h2 className="text-[18px] font-bold text-white leading-[23px] font-spaceGrotesk">Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[25px] max-w-4xl">
           {/* Feature 1 */}
           <div className="flex flex-col items-start w-[300px] md:w-[450px] border-t-2 border-[#19E5D1]">
@@ -43,8 +43,8 @@ export default function Landing() {
                 <Command className="w-4 h-4 text-[#19E5D1]" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">Multi-Image Upload</h3>
-                <p className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">
+                <h3 className="text-[14px] font-normal text-[#94C7C2]">Multi-Image Upload</h3>
+                <p className="text-[14px] font-normal text-[#94C7C2]">
                   Upload multiple images at once for batch processing
                 </p>
               </div>
@@ -58,8 +58,8 @@ export default function Landing() {
                 <Command className="w-4 h-4 text-[#19E5D1]" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">AI-Powered</h3>
-                <p className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">
+                <h3 className="text-[14px] font-normal text-[#94C7C2]">AI-Powered</h3>
+                <p className="text-[14px] font-normal text-[#94C7C2]">
                   Generate accurate captions using advanced AI models
                 </p>
               </div>
@@ -73,8 +73,8 @@ export default function Landing() {
                 <Command className="w-4 h-4 text-[#19E5D1]" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">Instant Results</h3>
-                <p className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">
+                <h3 className="text-[14px] font-normal text-[#94C7C2]">Instant Results</h3>
+                <p className="text-[14px] font-normal text-[#94C7C2]">
                   Get multiple captions for each image instantly
                 </p>
               </div>
@@ -88,8 +88,8 @@ export default function Landing() {
                 <Command className="w-4 h-4 text-[#19E5D1]" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">Easy to Use</h3>
-                <p className="text-[14px] font-normal text-[#94C7C2] font-spaceGrotesk dlig-on">
+                <h3 className="text-[14px] font-normal text-[#94C7C2]">Easy to Use</h3>
+                <p className="text-[14px] font-normal text-[#94C7C2]">
                   Simple drag and drop interface for quick uploads
                 </p>
               </div>
@@ -98,33 +98,33 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* How It Works Section */}
+      {/* How It Works section */}
       <div id="how-it-works" className="flex flex-col mt-2 max-w-5xl gap-[35px] mb-[100px]">
-        <h2 className="text-[22px] font-bold text-white font-spaceGrotesk leading-none self-stretch dlig-on">How it works</h2>
+        <h2 className="text-[22px] font-bold text-white leading-none self-stretch">How it works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[40px]">
           {/* Upload */}
-          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)] self-stretch flex-shrink-0">
+          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)]">
             <Command className="w-8 h-8 text-[#19E5D1]" />
-            <h3 className="text-[16px] font-bold text-white leading-[20px] font-spaceGrotesk dlig-on">Upload</h3>
-            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px] font-spaceGrotesk dlig-on">
+            <h3 className="text-[16px] font-bold text-white leading-[20px]">Upload</h3>
+            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px]">
               Upload your images in bulk
             </p>
           </div>
 
           {/* AI Analysis */}
-          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)] self-stretch flex-shrink-0">
+          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)]">
             <Command className="w-8 h-8 text-[#19E5D1]" />
-            <h3 className="text-[16px] font-bold text-white leading-[20px] font-spaceGrotesk dlig-on">AI Analysis</h3>
-            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px] font-spaceGrotesk dlig-on">
+            <h3 className="text-[16px] font-bold text-white leading-[20px]">AI Analysis</h3>
+            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px]">
               Our advanced AI analyzes your images
             </p>
           </div>
 
           {/* Instant Report */}
-          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)] self-stretch flex-shrink-0">
+          <div className="flex flex-col items-start gap-3 w-[301px] p-3 rounded-[8px] border border-[#19E5D1] bg-[rgba(29,29,29,0.60)]">
             <Command className="w-8 h-8 text-[#19E5D1]" />
-            <h3 className="text-[16px] font-bold text-white leading-[20px] font-spaceGrotesk dlig-on">Get Captions</h3>
-            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px] font-spaceGrotesk dlig-on">
+            <h3 className="text-[16px] font-bold text-white leading-[20px]">Get Captions</h3>
+            <p className="text-[14px] font-normal text-[#94C7C2] leading-[21px]">
               Receive multiple unique captions
             </p>
           </div>
