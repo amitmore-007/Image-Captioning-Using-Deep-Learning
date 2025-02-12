@@ -5,37 +5,55 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./contexts/authContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
+import Landing from "@/pages/landing";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import Contact from "@/pages/contact";
+import { useAuth } from "./contexts/authContext";
 
-function App() {
+function AppContent() {
+  const { userLoggedIn } = useAuth();
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {userLoggedIn && <Navbar />}
+      <div className="flex-grow">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route
+            path="/"
+            element={
+              userLoggedIn ? (
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              ) : (
+                <Landing />
+              )
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+      <Footer />
+      <Toaster />
+    </div>
+  );
+}
+
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <Navbar />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
+          <AppContent />
         </Router>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;
