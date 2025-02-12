@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp, bytea } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,6 +8,7 @@ export const images = pgTable("images", {
   mimeType: text("mime_type").notNull(),
   size: text("size").notNull(),
   url: text("url"),
+  data: bytea("data").notNull(),
   captions: jsonb("captions").notNull().$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

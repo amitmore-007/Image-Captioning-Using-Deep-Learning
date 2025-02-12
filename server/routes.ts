@@ -45,17 +45,18 @@ export function registerRoutes(app: Express) {
 
           // Get unique captions, filtering out undefined and duplicates
           const allCaptions = await Promise.all(captionPromises);
-          const uniqueCaptions = [...new Set(allCaptions.filter(caption => 
+          const uniqueCaptions = Array.from(new Set(allCaptions.filter(Boolean))).filter(caption => 
             caption && 
             caption.trim() && 
             caption.split(' ').length > 2 // Ensure caption has at least 3 words
-          ))];
+          );
 
-          // Store image data
+          // Store image data and buffer
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
+            data: file.buffer,
             captions: uniqueCaptions
           });
 
@@ -73,6 +74,22 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Add image preview endpoint
+  app.get("/api/images/:id/preview", async (req, res) => {
+    try {
+      const image = await storage.getImageById(parseInt(req.params.id));
+      if (!image || !image.data) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      res.setHeader('Content-Type', image.mimeType);
+      res.send(image.data);
+    } catch (error) {
+      console.error("Failed to fetch image preview:", error);
+      res.status(500).json({ message: "Failed to fetch image preview" });
+    }
+  });
+
   app.get("/api/images", async (_req, res) => {
     try {
       const images = await storage.getAllImages();
@@ -80,6 +97,16 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to fetch images:", error);
       res.status(500).json({ message: "Failed to fetch images" });
+    }
+  });
+
+  app.delete("/api/images/:id", async (req, res) => {
+    try {
+      await storage.deleteImage(parseInt(req.params.id));
+      res.json({ message: "Image deleted" });
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      res.status(500).json({ message: "Failed to delete image" });
     }
   });
 

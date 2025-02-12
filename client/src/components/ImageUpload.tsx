@@ -40,7 +40,7 @@ export function ImageUpload() {
   });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setSelectedFiles(prev => [...prev, ...acceptedFiles]);
+    setSelectedFiles(prev => [...prev, ...acceptedFiles].slice(0, 10)); // Limit to 10 files total
   }, []);
 
   const removeFile = (index: number) => {
@@ -55,7 +55,7 @@ export function ImageUpload() {
     uploadMutation.mutate(formData);
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
       'image/jpeg': ['.jpg', '.jpeg'],
@@ -64,13 +64,8 @@ export function ImageUpload() {
     },
     maxFiles: 10,
     maxSize: 20 * 1024 * 1024, // 20MB
+    noClick: true, // Disable click on the dropzone area
   });
-
-  const handleAddMore = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
 
   return (
     <Card className="p-6">
@@ -78,8 +73,9 @@ export function ImageUpload() {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
           ${isDragActive ? 'border-[#2563EB] bg-blue-50' : 'border-gray-300 hover:border-[#2563EB]'}`}
+        onClick={open} // Enable click on the dropzone area
       >
-        <input {...getInputProps()} ref={fileInputRef} />
+        <input {...getInputProps()} />
         <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
         <p className="text-[#4B5563] mb-2">
           {isDragActive ? "Drop your images here" : "Drag & drop images here, or click to select"}
@@ -96,7 +92,8 @@ export function ImageUpload() {
             <Button 
               variant="outline"
               size="sm"
-              onClick={handleAddMore}
+              onClick={open}
+              disabled={selectedFiles.length >= 10}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add More
