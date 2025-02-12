@@ -10,8 +10,10 @@ export function Navbar() {
   const handleAuthAction = async () => {
     if (userLoggedIn) {
       await doSignOut();
+      navigate('/');
+    } else {
+      navigate('/login');
     }
-    navigate('/login');
   };
 
   return (

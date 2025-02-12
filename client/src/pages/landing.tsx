@@ -4,8 +4,8 @@ import { Command } from "lucide-react";
 export default function Landing() {
   const navigate = useNavigate();
 
-  const handleNavigate = (path: string) => {
-    navigate(path);
+  const handleNavigate = () => {
+    navigate("/login");
   };
 
   return (
@@ -18,7 +18,7 @@ export default function Landing() {
           <div className="flex justify-center">
             <button 
               className="flex items-center justify-center h-10 min-w-[84px] max-w-[480px] px-4 rounded-[20px] bg-[#1AE5D1] text-black hover:bg-[#19d3c1]" 
-              onClick={() => handleNavigate("/login")}
+              onClick={handleNavigate}
             >
               Get Started
             </button>
