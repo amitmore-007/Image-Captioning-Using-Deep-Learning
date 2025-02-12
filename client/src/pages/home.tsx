@@ -1,33 +1,66 @@
 import { ImageUpload } from "@/components/ImageUpload";
 import { CaptionResults } from "@/components/CaptionResults";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Image } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Loader2, RefreshCw } from "lucide-react";
 
 export default function Home() {
-  const { data: images } = useQuery<Image[]>({ 
+  const queryClient = useQueryClient();
+  const { data: images, isLoading } = useQuery<Image[]>({ 
     queryKey: ["/api/images"]
   });
+
+  const handleReset = async () => {
+    // Clear all images
+    await fetch('/api/images', { method: 'DELETE' });
+    queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-4xl font-bold mb-2 font-inter text-[#111827]">
-          Image Caption Generator
-        </h1>
-        <p className="text-[#4B5563] mb-8">
-          Upload images to generate AI-powered captions
-        </p>
-        
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 font-inter text-[#111827]">
+              Image Caption Generator
+            </h1>
+            <p className="text-[#4B5563]">
+              Upload images to generate AI-powered captions
+            </p>
+          </div>
+          {images && images.length > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={handleReset}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Reset All
+            </Button>
+          )}
+        </div>
+
         <div className="grid gap-8">
           <ImageUpload />
-          
-          {images && images.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold font-inter text-[#111827]">
-                Generated Captions
-              </h2>
-              <CaptionResults images={images} />
+
+          {isLoading ? (
+            <div className="flex justify-center">
+              <Loader2 className="w-6 h-6 animate-spin" />
             </div>
+          ) : (
+            images && images.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-2xl font-semibold font-inter text-[#111827]">
+                  Generated Captions
+                </h2>
+                <CaptionResults images={images} onRemove={(id) => {
+                  fetch(`/api/images/${id}`, { method: 'DELETE' }).then(() => {
+                    queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+                  });
+                }} />
+              </div>
+            )
           )}
         </div>
       </div>
