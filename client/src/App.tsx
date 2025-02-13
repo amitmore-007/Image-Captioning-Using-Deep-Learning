@@ -2,20 +2,19 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "./contexts/authContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Landing from "@/pages/landing";
-import Login from "@/pages/auth/login";
-import Register from "@/pages/auth/register";
-import Contact from "@/pages/contact";
-import { useAuth } from "./contexts/authContext";
+import Login from "@/pages/auth/Login";
+import PasswordSetup from "@/pages/auth/PasswordSetup";
+import { useAuth } from "./contexts/AuthContext";
 
 function AppContent() {
-  const { userLoggedIn } = useAuth();
+  const { currentUser } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -23,12 +22,11 @@ function AppContent() {
       <div className="flex-grow">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/password-setup" element={<PasswordSetup />} />
           <Route
             path="/"
             element={
-              userLoggedIn ? (
+              currentUser ? (
                 <ProtectedRoute>
                   <Home />
                 </ProtectedRoute>
