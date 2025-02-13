@@ -18,8 +18,19 @@ export const insertImageSchema = createInsertSchema(images, {
   createdAt: undefined,
 });
 
+// Update the upload schema to handle multer files
 export const uploadSchema = z.object({
-  files: z.array(z.instanceof(File)).max(10),
+  files: z.array(z.object({
+    fieldname: z.string(),
+    originalname: z.string(),
+    encoding: z.string(),
+    mimetype: z.string().refine(type => 
+      ['image/jpeg', 'image/png', 'image/webp'].includes(type), 
+      'Only JPEG, PNG and WebP images are allowed'
+    ),
+    buffer: z.instanceof(Buffer),
+    size: z.number().max(20 * 1024 * 1024, 'File size must be less than 20MB'),
+  })).max(10, 'Maximum 10 files allowed'),
 });
 
 export type InsertImage = z.infer<typeof insertImageSchema>;

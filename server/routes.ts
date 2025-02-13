@@ -23,17 +23,21 @@ export function registerRoutes(app: Express) {
     try {
       const files = req.files as Express.Multer.File[];
 
-      // Validate the uploaded files using the schema
-      const result = uploadSchema.safeParse({ files });
-      if (!result.success) {
-        return res.status(400).json({ 
-          message: "Invalid upload",
-          errors: result.error.errors 
-        });
-      }
-
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      // Validate the uploaded files using the schema
+      const parseResult = uploadSchema.safeParse({ files });
+
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid upload",
+          errors: parseResult.error.errors.map(err => ({
+            message: err.message,
+            path: err.path.join('.')
+          }))
+        });
       }
 
       const results = await Promise.all(files.map(async (file) => {
@@ -41,13 +45,13 @@ export function registerRoutes(app: Express) {
           // Convert buffer to base64 for storage
           const base64Data = file.buffer.toString('base64');
 
-          // Generate 3 captions in parallel and take the first one that completes
+          // Generate captions using HuggingFace API
           const captionPromises = Array(3).fill(null).map(async () => {
             try {
               const result = await hf.imageToText({
                 model: "Salesforce/blip-image-captioning-base",
                 data: file.buffer,
-                wait_for_model: false
+                wait_for_model: true
               });
               return result.generated_text;
             } catch (error) {
@@ -58,9 +62,11 @@ export function registerRoutes(app: Express) {
 
           // Get unique captions, filtering out undefined and duplicates
           const allCaptions = await Promise.all(captionPromises);
-          const uniqueCaptions = Array.from(new Set(allCaptions.filter((caption): caption is string => typeof caption === 'string')));
+          const uniqueCaptions = Array.from(new Set(
+            allCaptions.filter((caption): caption is string => typeof caption === 'string')
+          ));
 
-          // Store image data and buffer
+          // Store image data
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
@@ -79,7 +85,10 @@ export function registerRoutes(app: Express) {
       res.json(results);
     } catch (error) {
       console.error("Failed to process images:", error);
-      res.status(500).json({ message: "Failed to process images" });
+      res.status(500).json({ 
+        message: "Failed to process images",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
