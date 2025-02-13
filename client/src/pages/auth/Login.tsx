@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui-components/Button";
 import { FcGoogle } from "react-icons/fc";
@@ -108,6 +108,13 @@ export default function Login() {
               <FcGoogle className="mr-2 h-5 w-5" />
               Sign in with Google
             </Button>
+
+            <p className="text-center text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-blue-600 hover:text-blue-500">
+                Sign up
+              </Link>
+            </p>
           </>
         ) : (
           <form onSubmit={handleResetPassword} className="space-y-4">
