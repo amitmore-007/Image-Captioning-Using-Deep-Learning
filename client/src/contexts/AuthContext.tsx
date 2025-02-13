@@ -14,6 +14,9 @@ import { auth } from "../firebase/firebase";
 
 interface AuthContextType {
   currentUser: User | null;
+  userLoggedIn: boolean;
+  isEmailUser: boolean;
+  isGoogleUser: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signUpWithPassword: (email: string, password: string) => Promise<void>;
@@ -35,6 +38,9 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [isEmailUser, setIsEmailUser] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function signInWithGoogle() {
@@ -65,7 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      if (user) {
+        setCurrentUser(user);
+        setIsEmailUser(user.providerData.some((provider) => provider.providerId === "password"));
+        setIsGoogleUser(user.providerData.some((provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID));
+        setUserLoggedIn(true);
+      } else {
+        setCurrentUser(null);
+        setUserLoggedIn(false);
+        setIsEmailUser(false);
+        setIsGoogleUser(false);
+      }
       setLoading(false);
     });
 
@@ -74,6 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     currentUser,
+    userLoggedIn,
+    isEmailUser,
+    isGoogleUser,
     signInWithGoogle,
     signInWithPassword,
     signUpWithPassword,

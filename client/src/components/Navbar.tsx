@@ -1,14 +1,13 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from '../contexts/AuthContext';
 import { Command } from "lucide-react";
-import React from 'react';
 
 export function Navbar() {
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  const { userLoggedIn, logout } = useAuth();
 
   const handleAuthAction = async () => {
-    if (currentUser) {
+    if (userLoggedIn) {
       try {
         await logout();
         navigate('/');
@@ -34,11 +33,18 @@ export function Navbar() {
         {/* Desktop Menu */}
         <div className="flex items-center space-x-6">
           <ul className="flex space-x-6">
-            {currentUser && (
+            {userLoggedIn && (
               <li>
-                <a href="#how-it-works" className="text-white hover:text-gray-400">
-                  How It Works
-                </a>
+                <Link to="/dashboard" className="text-white hover:text-gray-400">
+                  Dashboard
+                </Link>
+              </li>
+            )}
+            {!userLoggedIn && (
+              <li>
+                <Link to="/register" className="text-white hover:text-gray-400">
+                  Register
+                </Link>
               </li>
             )}
             <li>
@@ -53,7 +59,7 @@ export function Navbar() {
             className="h-10 w-[120px] px-4 rounded-full bg-[#1AE5D1] text-black hover:bg-[#19d3c1]"
             onClick={handleAuthAction}
           >
-            {currentUser ? "Logout" : "Get Started"}
+            {userLoggedIn ? "Logout" : "Login"}
           </button>
         </div>
       </nav>
