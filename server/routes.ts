@@ -4,6 +4,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { HfInference } from "@huggingface/inference";
 import { uploadSchema } from "@shared/schema";
+import { z } from "zod";
 
 if (!process.env.HUGGINGFACE_TOKEN) {
   throw new Error("HUGGINGFACE_TOKEN must be set");
@@ -21,6 +22,15 @@ export function registerRoutes(app: Express) {
   app.post("/api/images", upload.array("files", 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
+
+      // Validate the uploaded files using the schema
+      const result = uploadSchema.safeParse({ files });
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid upload",
+          errors: result.error.errors 
+        });
+      }
 
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
@@ -48,7 +58,7 @@ export function registerRoutes(app: Express) {
 
           // Get unique captions, filtering out undefined and duplicates
           const allCaptions = await Promise.all(captionPromises);
-          const uniqueCaptions = Array.from(new Set(allCaptions.filter(Boolean)));
+          const uniqueCaptions = Array.from(new Set(allCaptions.filter((caption): caption is string => typeof caption === 'string')));
 
           // Store image data and buffer
           const image = await storage.createImage({
@@ -56,7 +66,7 @@ export function registerRoutes(app: Express) {
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
-            captions: uniqueCaptions,
+            captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
           });
 
           return image;

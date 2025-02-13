@@ -65,7 +65,7 @@ export function ImageUpload() {
     uploadMutation.mutate(formData);
   };
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/jpeg': ['.jpg', '.jpeg'],
@@ -101,7 +101,7 @@ export function ImageUpload() {
             <Button 
               variant="outline"
               size="sm"
-              onClick={open}
+              onClick={() => document.querySelector('input[type="file"]')?.click()}
               disabled={selectedFiles.length >= 10 || uploadMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
