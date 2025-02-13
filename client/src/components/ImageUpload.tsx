@@ -18,7 +18,10 @@ export function ImageUpload() {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Upload failed");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -74,7 +77,7 @@ export function ImageUpload() {
     },
     maxFiles: 10,
     maxSize: 20 * 1024 * 1024, // 20MB
-    noClick: false, // Enable click to open file dialog
+    noClick: false, // Enable click-to-upload
   });
 
   return (
@@ -101,7 +104,10 @@ export function ImageUpload() {
             <Button 
               variant="outline"
               size="sm"
-              onClick={() => document.querySelector('input[type="file"]')?.click()}
+              onClick={() => {
+                const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                if (fileInput) fileInput.click();
+              }}
               disabled={selectedFiles.length >= 10 || uploadMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
