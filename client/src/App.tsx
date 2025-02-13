@@ -9,8 +9,8 @@ import { Footer } from "@/components/Footer";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Landing from "@/pages/landing";
-import Login from "@/pages/auth/Login";
-import PasswordSetup from "@/pages/auth/PasswordSetup";
+import Login from "@/pages/auth/login";
+import Register from "@/pages/auth/register";
 import { useAuth } from "./contexts/AuthContext";
 
 function AppContent() {
@@ -22,7 +22,7 @@ function AppContent() {
       <div className="flex-grow">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/password-setup" element={<PasswordSetup />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/"
             element={
