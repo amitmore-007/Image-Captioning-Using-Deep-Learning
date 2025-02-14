@@ -140,10 +140,13 @@ export function registerRoutes(app: Express) {
   app.delete("/api/images", async (_req, res) => {
     try {
       await storage.deleteAllImages();
-      res.json({ message: "All images deleted" });
+      res.status(200).json({ message: "All images deleted successfully" });
     } catch (error) {
       console.error("Failed to delete images:", error);
-      res.status(500).json({ message: "Failed to delete images" });
+      res.status(500).json({ 
+        message: "Failed to delete images",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

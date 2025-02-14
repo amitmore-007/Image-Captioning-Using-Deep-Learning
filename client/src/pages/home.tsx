@@ -23,10 +23,14 @@ export default function Home() {
 
   const handleReset = async () => {
     try {
-      await fetch('/api/images', { method: 'DELETE' });
+      const response = await fetch('/api/images', { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('Failed to reset images');
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/images"] });
     } catch (error) {
       console.error('Reset error:', error);
+      // You can add toast notification here if needed
     }
   };
 
