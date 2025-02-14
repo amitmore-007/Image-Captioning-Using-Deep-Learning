@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/authContext';
-import { doCreateUserWithEmailAndPassword } from '../../firebase/auth';
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { userLoggedIn } = useAuth();
+  const { currentUser, signUpWithPassword } = useAuth();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -54,7 +54,7 @@ export default function Register() {
     if (!isRegistering) {
       setIsRegistering(true);
       try {
-        await doCreateUserWithEmailAndPassword(email, password);
+        await signUpWithPassword(email, password);
         navigate('/');
       } catch (error) {
         const errorMsg = (error as Error).message;
@@ -69,12 +69,14 @@ export default function Register() {
     }
   };
 
-  return (
-    <>
-      {userLoggedIn && (<Navigate to={'/'} replace={true} />)}
+  if (currentUser) {
+    return <Navigate to="/" replace />;
+  }
 
-      <main className="w-full h-screen flex self-center place-content-center place-items-center bg-[#18212C]">
-        <div className="w-96 text-gray-600 space-y-5 p-4 shadow-xl border rounded-xl bg-white">
+  return (
+    <main className="w-full h-screen flex self-center place-content-center place-items-center bg-[#18212C]">
+      <Card className="w-96 text-gray-600 space-y-5 p-4 shadow-xl border rounded-xl bg-white">
+        <CardContent>
           <div className="text-center mb-6">
             <div className="mt-2">
               <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Create a New Account</h3>
@@ -148,8 +150,8 @@ export default function Register() {
               <Link to={'/login'} className="text-center text-sm hover:underline font-bold">Continue</Link>
             </div>
           </form>
-        </div>
-      </main>
-    </>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
