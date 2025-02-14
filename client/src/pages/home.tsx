@@ -1,20 +1,33 @@
 import { ImageUpload } from "@/components/ImageUpload";
 import { CaptionResults } from "@/components/CaptionResults";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Image } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 
+interface Image {
+  id: number;
+  filename: string;
+  mimeType: string;
+  size: string;
+  captions: string[];
+}
+
 export default function Home() {
   const queryClient = useQueryClient();
-  const { data: images, isLoading } = useQuery<Image[]>({ 
-    queryKey: ["/api/images"]
+  const { data: images, isLoading, error } = useQuery<Image[]>({ 
+    queryKey: ["/api/images"],
+    retry: 1
   });
 
+  console.log('Current images:', images); // Debug log
+
   const handleReset = async () => {
-    // Clear all images
-    await fetch('/api/images', { method: 'DELETE' });
-    queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+    try {
+      await fetch('/api/images', { method: 'DELETE' });
+      queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+    } catch (error) {
+      console.error('Reset error:', error);
+    }
   };
 
   return (
@@ -44,24 +57,24 @@ export default function Home() {
         <div className="grid gap-8">
           <ImageUpload />
 
-          {isLoading ? (
+          {error ? (
+            <div className="text-red-500">Error loading images: {error.message}</div>
+          ) : isLoading ? (
             <div className="flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
-          ) : (
-            images && images.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold font-inter text-[#111827]">
-                  Generated Captions
-                </h2>
-                <CaptionResults images={images} onRemove={(id) => {
-                  fetch(`/api/images/${id}`, { method: 'DELETE' }).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ["/api/images"] });
-                  });
-                }} />
-              </div>
-            )
-          )}
+          ) : images && images.length > 0 ? (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold font-inter text-[#111827]">
+                Generated Captions
+              </h2>
+              <CaptionResults images={images} onRemove={(id) => {
+                fetch(`/api/images/${id}`, { method: 'DELETE' }).then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/images"] });
+                });
+              }} />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

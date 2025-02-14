@@ -24,7 +24,9 @@ export function ImageUpload() {
       }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Log the response data to see what we're getting back
+      console.log('Upload response:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/images"] });
       setSelectedFiles([]);
       toast({
@@ -32,6 +34,7 @@ export function ImageUpload() {
       });
     },
     onError: (error: Error) => {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -51,7 +54,7 @@ export function ImageUpload() {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       toast({
         title: "Error",
@@ -65,7 +68,12 @@ export function ImageUpload() {
     selectedFiles.forEach((file) => {
       formData.append("files", file);
     });
-    uploadMutation.mutate(formData);
+
+    try {
+      await uploadMutation.mutateAsync(formData);
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
