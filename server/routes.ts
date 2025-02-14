@@ -49,11 +49,21 @@ export function registerRoutes(app: Express) {
           let caption;
           try {
             // Current model - Fastest but less detailed
-            const result = await hf.imageToText({
-              model: "Salesforce/blip-image-captioning-base",
-              data: file.buffer,
-              wait_for_model: true
-            });
+            try {
+              const result = await hf.imageToText({
+                model: "Salesforce/blip-image-captioning-base",
+                data: file.buffer,
+                wait_for_model: true
+              });
+              caption = result.generated_text;
+            } catch (error) {
+              if (error.response?.status === 429) {
+                console.error("Rate limit exceeded");
+                throw new Error("Rate limit exceeded. Please try again later.");
+              }
+              throw error;
+            }
+
 
             // Option 1 - More descriptive, good for social media (uncomment to use)
             /*
@@ -72,8 +82,7 @@ export function registerRoutes(app: Express) {
               wait_for_model: true
             });
             */
-            
-            caption = result.generated_text;
+
           } catch (error) {
             console.error("Caption generation error:", error);
             caption = "Failed to generate caption";
@@ -131,7 +140,7 @@ export function registerRoutes(app: Express) {
     try {
       const userId = req.headers['user-id'] as string;
       let images;
-      
+
       if (!userId) {
         // For logged out users, only return recent images
         images = await storage.getRecentLoggedOutImages();
