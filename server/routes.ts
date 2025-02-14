@@ -45,26 +45,22 @@ export function registerRoutes(app: Express) {
           // Convert buffer to base64 for storage
           const base64Data = file.buffer.toString('base64');
 
-          // Generate captions using HuggingFace API
-          const captionPromises = Array(3).fill(null).map(async () => {
-            try {
-              const result = await hf.imageToText({
-                model: "Salesforce/blip-image-captioning-base",
-                data: file.buffer,
-                wait_for_model: true
-              });
-              return result.generated_text;
-            } catch (error) {
-              console.error("Caption generation error:", error);
-              return undefined;
-            }
-          });
+          // Generate caption using HuggingFace API (single call)
+          let caption;
+          try {
+            const result = await hf.imageToText({
+              model: "Salesforce/blip-image-captioning-base",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            caption = result.generated_text;
+          } catch (error) {
+            console.error("Caption generation error:", error);
+            caption = "Failed to generate caption";
+          }
 
-          // Get unique captions, filtering out undefined and duplicates
-          const allCaptions = await Promise.all(captionPromises);
-          const uniqueCaptions = Array.from(new Set(
-            allCaptions.filter((caption): caption is string => typeof caption === 'string')
-          ));
+          // Create captions array with single caption
+          const uniqueCaptions = caption ? [caption] : ["No caption generated"];
 
           // Store image data
           const image = await storage.createImage({
