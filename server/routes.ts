@@ -48,11 +48,31 @@ export function registerRoutes(app: Express) {
           // Generate caption using HuggingFace API (single call)
           let caption;
           try {
+            // Current model - Fastest but less detailed
             const result = await hf.imageToText({
               model: "Salesforce/blip-image-captioning-base",
               data: file.buffer,
               wait_for_model: true
             });
+
+            // Option 1 - More descriptive, good for social media (uncomment to use)
+            /*
+            const result = await hf.imageToText({
+              model: "microsoft/git-large-textcaps",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            */
+
+            // Option 2 - Most accurate but slowest (uncomment to use)
+            /*
+            const result = await hf.imageToText({
+              model: "Salesforce/blip-image-captioning-large",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            */
+            
             caption = result.generated_text;
           } catch (error) {
             console.error("Caption generation error:", error);
