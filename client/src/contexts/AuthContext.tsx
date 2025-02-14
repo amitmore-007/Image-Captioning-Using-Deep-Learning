@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { 
   User,
   GoogleAuthProvider,
@@ -6,9 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updatePassword
+  signInWithEmailAndPassword
 } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 
@@ -18,8 +16,6 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signUpWithPassword: (email: string, password: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  createPassword: (password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -51,15 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await createUserWithEmailAndPassword(auth, email, password);
   }
 
-  async function resetPassword(email: string) {
-    await sendPasswordResetEmail(auth, email);
-  }
-
-  async function createPassword(password: string) {
-    if (!currentUser) throw new Error("No user found");
-    await updatePassword(currentUser, password);
-  }
-
   async function logout() {
     await signOut(auth);
   }
@@ -79,8 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signInWithPassword,
     signUpWithPassword,
-    resetPassword,
-    createPassword,
     logout,
     loading
   };

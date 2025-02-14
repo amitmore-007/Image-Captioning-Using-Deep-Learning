@@ -1,7 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from '../contexts/AuthContext';
 import { Command } from "lucide-react";
-import React from 'react';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -11,7 +10,7 @@ export function Navbar() {
     if (currentUser) {
       try {
         await logout();
-        navigate('/');
+        navigate('/login');
       } catch (error) {
         console.error("Logout failed:", error);
       }
