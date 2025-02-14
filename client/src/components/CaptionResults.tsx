@@ -39,7 +39,7 @@ export function CaptionResults({ images, onRemove }: CaptionResultsProps) {
               >
                 <X className="w-4 h-4" />
               </Button>
-              <div className="w-full aspect-square bg-gray-100 rounded-lg relative overflow-hidden">
+              <div className="w-full max-w-[300px] mx-auto aspect-square bg-gray-100 rounded-lg relative overflow-hidden">
                 <img
                   src={`/api/images/${image.id}/preview`}
                   alt={image.filename}

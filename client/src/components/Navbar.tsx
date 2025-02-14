@@ -25,7 +25,7 @@ export function Navbar() {
         {/* Logo Section */}
         <div className="flex items-center gap-2">
           <Command className="w-6 h-6" />
-          <Link to="/" className="text-[15px] md:text-[18px] font-bold text-white">
+          <Link to={currentUser ? "/home" : "/"} className="text-[15px] md:text-[18px] font-bold text-white">
             SnapCaption
           </Link>
         </div>
@@ -33,15 +33,8 @@ export function Navbar() {
         {/* Desktop Menu */}
         <div className="flex items-center space-x-6">
           <ul className="flex space-x-6">
-            {currentUser && (
-              <li>
-                <a href="#how-it-works" className="text-white hover:text-gray-400">
-                  How It Works
-                </a>
-              </li>
-            )}
             <li>
-              <Link to="/contact" className="text-white hover:text-gray-400">
+              <Link to="/reachout" className="text-white hover:text-gray-400">
                 Contact Us
               </Link>
             </li>

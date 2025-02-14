@@ -11,6 +11,7 @@ import Home from "@/pages/home";
 import Landing from "@/pages/landing";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
+import Reachout from "@/pages/reachout";
 
 function AppContent() {
   return (
@@ -22,6 +23,7 @@ function AppContent() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reachout" element={<Reachout />} />
 
           {/* Protected routes */}
           <Route 
