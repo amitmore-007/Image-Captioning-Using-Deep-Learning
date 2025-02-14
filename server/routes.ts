@@ -63,12 +63,15 @@ export function registerRoutes(app: Express) {
           const uniqueCaptions = caption ? [caption] : ["No caption generated"];
 
           // Store image data
+          const userId = req.headers['user-id'] as string;
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
             captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
+            userId: userId || null,
+            isLoggedOut: !userId
           });
 
           return image;
@@ -104,9 +107,19 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.get("/api/images", async (_req, res) => {
+  app.get("/api/images", async (req, res) => {
     try {
-      const images = await storage.getAllImages();
+      const userId = req.headers['user-id'] as string;
+      let images;
+      
+      if (!userId) {
+        // For logged out users, only return recent images
+        images = await storage.getRecentLoggedOutImages();
+        // Trigger cleanup of old images
+        await storage.cleanupLoggedOutImages();
+      } else {
+        images = await storage.getAllImages();
+      }
       res.json(images);
     } catch (error) {
       console.error("Failed to fetch images:", error);

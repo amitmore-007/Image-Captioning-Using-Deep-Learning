@@ -11,6 +11,8 @@ export const images = pgTable("images", {
   data: text("data").notNull(), // Store base64 encoded image data
   captions: jsonb("captions").notNull().$type<string[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  userId: text("user_id"),
+  isLoggedOut: boolean("is_logged_out").default(false).notNull(),
 });
 
 export const insertImageSchema = createInsertSchema(images, {

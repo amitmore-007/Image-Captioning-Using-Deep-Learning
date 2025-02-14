@@ -47,6 +47,23 @@ export class DatabaseStorage implements IStorage {
   async deleteAllImages(): Promise<void> {
     await db.delete(images);
   }
+
+  async cleanupLoggedOutImages(): Promise<void> {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    await db.delete(images)
+      .where(and(
+        eq(images.isLoggedOut, true),
+        lt(images.createdAt, tenMinutesAgo)
+      ));
+  }
+
+  async getRecentLoggedOutImages(): Promise<Image[]> {
+    return db.select()
+      .from(images)
+      .where(eq(images.isLoggedOut, true))
+      .orderBy(desc(images.createdAt))
+      .limit(2);
+  }
 }
 
 export const storage = new DatabaseStorage();
