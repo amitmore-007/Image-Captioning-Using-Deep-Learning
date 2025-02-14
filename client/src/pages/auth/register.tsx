@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/authContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Register() {
