@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   if (userLoggedIn) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return (
