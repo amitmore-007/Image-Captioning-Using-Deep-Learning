@@ -11,11 +11,8 @@ import Home from "@/pages/home";
 import Landing from "@/pages/landing";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
-import { useAuth } from "./contexts/AuthContext";
 
 function AppContent() {
-  const { currentUser } = useAuth();
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -25,14 +22,14 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
           <Route
             path="/"
+            element={<Landing />}
+          />
+          <Route 
+            path="/home" 
             element={
-              currentUser ? (
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              ) : (
-                <Landing />
-              )
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<NotFound />} />
