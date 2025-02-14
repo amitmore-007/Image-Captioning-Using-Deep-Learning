@@ -13,7 +13,7 @@ if (!process.env.HUGGINGFACE_TOKEN) {
 const hf = new HfInference(process.env.HUGGINGFACE_TOKEN);
 const upload = multer({ 
   limits: { 
-    fileSize: 20 * 1024 * 1024, // 20MB
+    fileSize: 3 * 1024 * 1024, // 3MB
     files: 10 
   }
 });

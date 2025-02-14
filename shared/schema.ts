@@ -29,7 +29,7 @@ export const uploadSchema = z.object({
       'Only JPEG, PNG and WebP images are allowed'
     ),
     buffer: z.instanceof(Buffer),
-    size: z.number().max(20 * 1024 * 1024, 'File size must be less than 20MB'),
+    size: z.number().max(3 * 1024 * 1024, 'File size must be less than 3MB'),
   })).max(10, 'Maximum 10 files allowed'),
 });
 

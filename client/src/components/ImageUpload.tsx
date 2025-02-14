@@ -101,7 +101,7 @@ export function ImageUpload() {
           {isDragActive ? "Drop your images here" : "Drag & drop images here, or click to select"}
         </p>
         <p className="text-sm text-gray-500">
-          Up to 10 images (JPG, PNG, WebP) • 20MB total
+          Up to 10 images (JPG, PNG, WebP) • Max 3MB per image
         </p>
       </div>
 
