@@ -1,6 +1,6 @@
 import { images, type Image, type InsertImage } from "@shared/schema";
 import { db } from "./db";
-import { desc, eq, and, lt } from "drizzle-orm";
+import { desc, eq, and, lt, gt } from "drizzle-orm";
 
 export interface IStorage {
   createImage(image: InsertImage): Promise<Image>;
