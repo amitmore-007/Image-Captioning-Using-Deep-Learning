@@ -58,16 +58,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentLoggedOutImages(): Promise<Image[]> {
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     return db.select()
       .from(images)
-      .where(
-        and(
-          eq(images.isLoggedOut, true),
-          gt(images.createdAt, tenMinutesAgo)
-        )
-      )
-      .orderBy(desc(images.createdAt));
+      .where(eq(images.isLoggedOut, true))
+      .orderBy(desc(images.createdAt))
+      .limit(2);
   }
 }
 

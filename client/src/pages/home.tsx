@@ -61,7 +61,9 @@ export default function Home() {
         <div className="grid gap-8">
           <ImageUpload />
 
-          {isLoading ? (
+          {error ? (
+            <div className="text-red-500">Error loading images: {error.message}</div>
+          ) : isLoading ? (
             <div className="flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
