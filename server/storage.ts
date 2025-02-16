@@ -49,24 +49,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async cleanupLoggedOutImages(): Promise<void> {
-    // Old code with 10-minute condition
-    /*
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     await db.delete(images)
       .where(and(
         eq(images.isLoggedOut, true),
         lt(images.createdAt, tenMinutesAgo)
       ));
-    */
-    
-    // New code: delete logged out images immediately
-    await db.delete(images)
-      .where(eq(images.isLoggedOut, true));
   }
 
   async getRecentLoggedOutImages(): Promise<Image[]> {
-    // Old code with 10-minute condition
-    /*
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
     return db.select()
       .from(images)
@@ -76,13 +67,6 @@ export class DatabaseStorage implements IStorage {
           gt(images.createdAt, tenMinutesAgo)
         )
       )
-      .orderBy(desc(images.createdAt));
-    */
-    
-    // New code: return all logged out images (they will be cleaned up after upload)
-    return db.select()
-      .from(images)
-      .where(eq(images.isLoggedOut, true))
       .orderBy(desc(images.createdAt));
   }
 }
