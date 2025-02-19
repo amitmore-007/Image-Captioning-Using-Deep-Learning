@@ -15,12 +15,12 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async createImage(insertImage: InsertImage): Promise<Image> {
     try {
-      console.log('Creating image in database with filename:', insertImage.filename); // Debug log
+      console.log('Creating image in database with filename:', insertImage.filename);
       const [image] = await db
         .insert(images)
         .values(insertImage)
         .returning();
-      console.log('Image created successfully with ID:', image.id); // Debug log
+      console.log('Image created successfully with ID:', image.id);
       return image;
     } catch (error) {
       console.error('Error creating image in database:', error);
@@ -30,12 +30,12 @@ export class DatabaseStorage implements IStorage {
 
   async getImageById(id: number): Promise<Image | undefined> {
     try {
-      console.log('Fetching image with ID:', id); // Debug log
+      console.log('Fetching image with ID:', id);
       const [image] = await db
         .select()
         .from(images)
         .where(eq(images.id, id));
-      console.log('Image fetch result:', image ? 'Found' : 'Not found'); // Debug log
+      console.log('Image fetch result:', image ? 'Found' : 'Not found');
       return image;
     } catch (error) {
       console.error('Error fetching image:', error);
@@ -49,7 +49,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(images)
         .orderBy(desc(images.createdAt));
-      console.log(`Fetched ${allImages.length} images`); // Debug log
+      console.log(`Fetched ${allImages.length} images`);
       return allImages;
     } catch (error) {
       console.error('Error fetching all images:', error);
@@ -62,7 +62,7 @@ export class DatabaseStorage implements IStorage {
       await db
         .delete(images)
         .where(eq(images.id, id));
-      console.log('Image deleted successfully:', id); // Debug log
+      console.log('Image deleted successfully:', id);
     } catch (error) {
       console.error('Error deleting image:', error);
       throw error;
@@ -72,7 +72,7 @@ export class DatabaseStorage implements IStorage {
   async deleteAllImages(): Promise<void> {
     try {
       await db.delete(images);
-      console.log('All images deleted successfully'); // Debug log
+      console.log('All images deleted successfully');
     } catch (error) {
       console.error('Error deleting all images:', error);
       throw error;
@@ -83,7 +83,7 @@ export class DatabaseStorage implements IStorage {
     try {
       await db.delete(images)
         .where(eq(images.isLoggedOut, true));
-      console.log('Cleaned up logged out images'); // Debug log
+      console.log('Cleaned up logged out images');
     } catch (error) {
       console.error('Error cleaning up logged out images:', error);
       throw error;
@@ -92,12 +92,13 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentLoggedOutImages(): Promise<Image[]> {
     try {
-      const images = await db.select()
+      const recentImages = await db
+        .select()
         .from(images)
         .where(eq(images.isLoggedOut, true))
         .orderBy(desc(images.createdAt));
-      console.log(`Fetched ${images.length} recent logged out images`); // Debug log
-      return images;
+      console.log(`Fetched ${recentImages.length} recent logged out images`);
+      return recentImages;
     } catch (error) {
       console.error('Error fetching recent logged out images:', error);
       throw error;
