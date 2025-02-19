@@ -124,15 +124,27 @@ export function registerRoutes(app: Express) {
     try {
       const image = await storage.getImageById(parseInt(req.params.id));
       if (!image || !image.data) {
+        console.error(`Image not found for id: ${req.params.id}`);
         return res.status(404).json({ message: "Image not found" });
       }
 
-      const buffer = Buffer.from(image.data, 'base64');
-      res.setHeader('Content-Type', image.mimeType);
-      res.send(buffer);
+      try {
+        // Decode base64 string to buffer
+        const buffer = Buffer.from(image.data, 'base64');
+
+        // Set proper content type and cache headers
+        res.setHeader('Content-Type', image.mimeType);
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+
+        // Send the buffer
+        return res.send(buffer);
+      } catch (decodeError) {
+        console.error('Error decoding image data:', decodeError);
+        return res.status(500).json({ message: "Error processing image data" });
+      }
     } catch (error) {
       console.error("Failed to fetch image preview:", error);
-      res.status(500).json({ message: "Failed to fetch image preview" });
+      return res.status(500).json({ message: "Failed to fetch image preview" });
     }
   });
 
