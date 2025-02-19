@@ -43,47 +43,22 @@ export function registerRoutes(app: Express) {
       const results = await Promise.all(files.map(async (file) => {
         try {
           // Convert buffer to base64 for storage
-          const base64Data = file.buffer.toString('base64');
+          const base64Data = Buffer.from(file.buffer).toString('base64');
 
-          // Generate caption using HuggingFace API (single call)
+          // Generate caption using HuggingFace API
           let caption;
           try {
-            // Current model - Fastest but less detailed
-            try {
-              const result = await hf.imageToText({
-                model: "Salesforce/blip-image-captioning-base",
-                data: file.buffer,
-                wait_for_model: true
-              });
-              caption = result.generated_text;
-            } catch (error) {
-              if (error.response?.status === 429) {
-                console.error("Rate limit exceeded");
-                throw new Error("Rate limit exceeded. Please try again later.");
-              }
-              throw error;
+            const result = await hf.imageToText({
+              model: "Salesforce/blip-image-captioning-base",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            caption = result.generated_text;
+          } catch (error: any) {
+            if (error.response?.status === 429) {
+              console.error("Rate limit exceeded");
+              throw new Error("Rate limit exceeded. Please try again later.");
             }
-
-
-            // Option 1 - More descriptive, good for social media (uncomment to use)
-            /*
-            const result = await hf.imageToText({
-              model: "microsoft/git-large-textcaps",
-              data: file.buffer,
-              wait_for_model: true
-            });
-            */
-
-            // Option 2 - Most accurate but slowest (uncomment to use)
-            /*
-            const result = await hf.imageToText({
-              model: "Salesforce/blip-image-captioning-large",
-              data: file.buffer,
-              wait_for_model: true
-            });
-            */
-
-          } catch (error) {
             console.error("Caption generation error:", error);
             caption = "Failed to generate caption";
           }
@@ -98,9 +73,10 @@ export function registerRoutes(app: Express) {
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
-            captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
+            captions: uniqueCaptions,
             userId: userId || null,
-            isLoggedOut: !userId
+            isLoggedOut: !userId,
+            url: null
           });
 
           return image;
