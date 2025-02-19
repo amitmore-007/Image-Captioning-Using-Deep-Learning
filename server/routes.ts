@@ -110,10 +110,18 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/images/:id/preview", async (req, res) => {
     try {
-      const image = await storage.getImageById(parseInt(req.params.id));
-      if (!image || !image.data) {
-        console.error(`Image not found for id: ${req.params.id}`);
+      const id = parseInt(req.params.id);
+      console.log(`Attempting to fetch image preview for ID: ${id}`);
+
+      const image = await storage.getImageById(id);
+      if (!image) {
+        console.error(`Image not found in database for id: ${id}`);
         return res.status(404).json({ message: "Image not found" });
+      }
+
+      if (!image.data) {
+        console.error(`Image data is missing for id: ${id}`);
+        return res.status(404).json({ message: "Image data not found" });
       }
 
       try {
