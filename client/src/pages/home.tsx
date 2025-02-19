@@ -3,14 +3,9 @@ import { CaptionResults } from "@/components/CaptionResults";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
+import type { Image } from "@shared/schema";
 
-interface Image {
-  id: number;
-  filename: string;
-  mimeType: string;
-  size: string;
-  captions: string[];
-}
+// Remove the local Image interface as we're now using the shared schema type
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -18,8 +13,6 @@ export default function Home() {
     queryKey: ["/api/images"],
     retry: 1
   });
-
-  console.log('Current images:', images); // Debug log
 
   const handleReset = async () => {
     try {
@@ -30,7 +23,6 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/images"] });
     } catch (error) {
       console.error('Reset error:', error);
-      // You can add toast notification here if needed
     }
   };
 
@@ -62,7 +54,7 @@ export default function Home() {
           <ImageUpload />
 
           {error ? (
-            <div className="text-red-500">Error loading images: {error.message}</div>
+            <div className="text-red-500">Error loading images: {error instanceof Error ? error.message : 'Unknown error'}</div>
           ) : isLoading ? (
             <div className="flex justify-center">
               <Loader2 className="w-6 h-6 animate-spin" />
