@@ -7,13 +7,15 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+  throw new Error("DATABASE_URL must be set");
 }
 
-// Create the connection pool with explicit SSL configuration
+// Create the connection pool with more robust configuration
 const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000, // Increased timeout
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // How long a client is allowed to remain idle
   ssl: {
     rejectUnauthorized: false // For development environment
   }
@@ -22,14 +24,28 @@ const pool = new Pool({
 // Initialize Drizzle with the pool
 export const db = drizzle(pool, { schema });
 
-// Add a health check function
+// Add a more robust health check function
 export const checkDatabaseConnection = async () => {
-  try {
-    await pool.query('SELECT 1');
-    console.log('Database connection successful');
-    return true;
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    return false;
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      await pool.query('SELECT 1');
+      console.log('Database connection successful');
+      return true;
+    } catch (error) {
+      console.error(`Database connection attempt failed (${retries} retries left):`, error);
+      retries--;
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      }
+    }
   }
+  console.error('All database connection attempts failed');
+  return false;
 };
+
+// Handle cleanup on application shutdown
+process.on('SIGINT', async () => {
+  await pool.end();
+  process.exit(0);
+});

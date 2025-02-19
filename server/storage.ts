@@ -1,6 +1,6 @@
 import { images, type Image, type InsertImage } from "@shared/schema";
 import { db } from "./db";
-import { desc, eq, and, lt, gt } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export interface IStorage {
   createImage(image: InsertImage): Promise<Image>;
@@ -16,7 +16,7 @@ export class DatabaseStorage implements IStorage {
   async createImage(insertImage: InsertImage): Promise<Image> {
     const [image] = await db
       .insert(images)
-      .values(insertImage)
+      .values([insertImage]) 
       .returning();
     return image;
   }
