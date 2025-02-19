@@ -46,7 +46,7 @@ export function registerRoutes(app: Express) {
           const base64Data = file.buffer.toString('base64');
 
           // Generate caption using HuggingFace API
-          let caption;
+          let caption = "No caption generated";
           try {
             const result = await hf.imageToText({
               model: "Salesforce/blip-image-captioning-base",
@@ -54,16 +54,13 @@ export function registerRoutes(app: Express) {
               wait_for_model: true
             });
             caption = result.generated_text;
-          } catch (error: any) { // Type assertion for error
+          } catch (error: any) {
+            console.error("Caption generation error:", error);
             if (error.response?.status === 429) {
-              console.error("Rate limit exceeded");
               throw new Error("Rate limit exceeded. Please try again later.");
             }
-            throw error;
+            // Continue with default caption if HuggingFace fails
           }
-
-          // Create captions array with single caption
-          const uniqueCaptions = caption ? [caption] : ["No caption generated"];
 
           // Store image data
           const userId = req.headers['user-id'] as string | undefined;
@@ -72,7 +69,7 @@ export function registerRoutes(app: Express) {
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
-            captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
+            captions: caption ? [caption] : ['No caption generated'],
             userId: userId,
             isLoggedOut: !userId
           });
@@ -87,9 +84,10 @@ export function registerRoutes(app: Express) {
       res.json(results);
     } catch (error) {
       console.error("Failed to process images:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ 
         message: "Failed to process images",
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage
       });
     }
   });
