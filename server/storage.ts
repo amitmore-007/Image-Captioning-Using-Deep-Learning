@@ -1,89 +1,45 @@
-import { images, type Image, type InsertImage } from "@shared/schema";
-import { db } from "./db";
-import { desc, eq, and, lt, gt } from "drizzle-orm";
+import { Image, type IImage, type InsertImage } from "@shared/schema";
 
 export interface IStorage {
-  createImage(image: InsertImage): Promise<Image>;
-  getImageById(id: number): Promise<Image | undefined>;
-  getAllImages(): Promise<Image[]>;
-  deleteImage(id: number): Promise<void>;
+  createImage(image: InsertImage): Promise<IImage>;
+  getImageById(id: string): Promise<IImage | undefined>;
+  getAllImages(): Promise<IImage[]>;
+  deleteImage(id: string): Promise<void>;
   deleteAllImages(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async createImage(insertImage: InsertImage): Promise<Image> {
-    const [image] = await db
-      .insert(images)
-      .values({
-        ...insertImage,
-        captions: Array.isArray(insertImage.captions) ? insertImage.captions : [insertImage.captions],
-      })
-      .returning();
-    return image;
+  async createImage(insertImage: InsertImage): Promise<IImage> {
+    const image = new Image({
+      ...insertImage,
+      captions: Array.isArray(insertImage.captions) ? insertImage.captions : [insertImage.captions],
+    });
+    return await image.save();
   }
 
-  async getImageById(id: number): Promise<Image | undefined> {
-    const [image] = await db
-      .select()
-      .from(images)
-      .where(eq(images.id, id));
-    return image;
+  async getImageById(id: string): Promise<IImage | undefined> {
+    const image = await Image.findById(id);
+    return image || undefined;
   }
 
-  async getAllImages(): Promise<Image[]> {
-    const allImages = await db
-      .select()
-      .from(images)
-      .orderBy(desc(images.createdAt));
-    return allImages;
+  async getAllImages(): Promise<IImage[]> {
+    return await Image.find().sort({ createdAt: -1 });
   }
 
-  async deleteImage(id: number): Promise<void> {
-    await db
-      .delete(images)
-      .where(eq(images.id, id));
+  async deleteImage(id: string): Promise<void> {
+    await Image.findByIdAndDelete(id);
   }
 
   async deleteAllImages(): Promise<void> {
-    await db.delete(images);
+    await Image.deleteMany({});
   }
 
   async cleanupLoggedOutImages(): Promise<void> {
-    // Old code with 10-minute condition
-    /*
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-    await db.delete(images)
-      .where(and(
-        eq(images.isLoggedOut, true),
-        lt(images.createdAt, tenMinutesAgo)
-      ));
-    */
-    
-    // New code: delete logged out images immediately
-    await db.delete(images)
-      .where(eq(images.isLoggedOut, true));
+    await Image.deleteMany({ isLoggedOut: true });
   }
 
-  async getRecentLoggedOutImages(): Promise<Image[]> {
-    // Old code with 10-minute condition
-    /*
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-    return db.select()
-      .from(images)
-      .where(
-        and(
-          eq(images.isLoggedOut, true),
-          gt(images.createdAt, tenMinutesAgo)
-        )
-      )
-      .orderBy(desc(images.createdAt));
-    */
-    
-    // New code: return all logged out images (they will be cleaned up after upload)
-    return db.select()
-      .from(images)
-      .where(eq(images.isLoggedOut, true))
-      .orderBy(desc(images.createdAt));
+  async getRecentLoggedOutImages(): Promise<IImage[]> {
+    return await Image.find({ isLoggedOut: true }).sort({ createdAt: -1 });
   }
 }
 

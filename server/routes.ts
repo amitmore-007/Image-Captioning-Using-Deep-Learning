@@ -45,61 +45,35 @@ export function registerRoutes(app: Express) {
           // Convert buffer to base64 for storage
           const base64Data = file.buffer.toString('base64');
 
-          // Generate caption using HuggingFace API (single call)
+          // Generate caption using HuggingFace API
           let caption;
           try {
-            // Current model - Fastest but less detailed
-            try {
-              const result = await hf.imageToText({
-                model: "Salesforce/blip-image-captioning-base",
-                data: file.buffer,
-                wait_for_model: true
-              });
-              caption = result.generated_text;
-            } catch (error) {
-              if (error.response?.status === 429) {
-                console.error("Rate limit exceeded");
-                throw new Error("Rate limit exceeded. Please try again later.");
-              }
-              throw error;
+            const result = await hf.imageToText({
+              model: "Salesforce/blip-image-captioning-base",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            caption = result.generated_text;
+          } catch (error: any) { // Type assertion for error
+            if (error.response?.status === 429) {
+              console.error("Rate limit exceeded");
+              throw new Error("Rate limit exceeded. Please try again later.");
             }
-
-
-            // Option 1 - More descriptive, good for social media (uncomment to use)
-            /*
-            const result = await hf.imageToText({
-              model: "microsoft/git-large-textcaps",
-              data: file.buffer,
-              wait_for_model: true
-            });
-            */
-
-            // Option 2 - Most accurate but slowest (uncomment to use)
-            /*
-            const result = await hf.imageToText({
-              model: "Salesforce/blip-image-captioning-large",
-              data: file.buffer,
-              wait_for_model: true
-            });
-            */
-
-          } catch (error) {
-            console.error("Caption generation error:", error);
-            caption = "Failed to generate caption";
+            throw error;
           }
 
           // Create captions array with single caption
           const uniqueCaptions = caption ? [caption] : ["No caption generated"];
 
           // Store image data
-          const userId = req.headers['user-id'] as string;
+          const userId = req.headers['user-id'] as string | undefined;
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
             captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
-            userId: userId || null,
+            userId: userId,
             isLoggedOut: !userId
           });
 
@@ -122,7 +96,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/images/:id/preview", async (req, res) => {
     try {
-      const image = await storage.getImageById(parseInt(req.params.id));
+      const image = await storage.getImageById(req.params.id);
       if (!image || !image.data) {
         return res.status(404).json({ message: "Image not found" });
       }
@@ -138,7 +112,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/images", async (req, res) => {
     try {
-      const userId = req.headers['user-id'] as string;
+      const userId = req.headers['user-id'] as string | undefined;
       let images;
 
       if (!userId) {
@@ -158,7 +132,7 @@ export function registerRoutes(app: Express) {
 
   app.delete("/api/images/:id", async (req, res) => {
     try {
-      await storage.deleteImage(parseInt(req.params.id));
+      await storage.deleteImage(req.params.id);
       res.json({ message: "Image deleted" });
     } catch (error) {
       console.error("Failed to delete image:", error);

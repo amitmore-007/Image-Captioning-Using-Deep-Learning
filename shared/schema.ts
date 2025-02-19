@@ -1,26 +1,36 @@
-import { pgTable, text, serial, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { Schema, model, Document } from 'mongoose';
 import { z } from "zod";
 
-export const images = pgTable("images", {
-  id: serial("id").primaryKey(),
-  filename: text("filename").notNull(),
-  mimeType: text("mime_type").notNull(),
-  size: text("size").notNull(),
-  url: text("url"),
-  data: text("data").notNull(), // Store base64 encoded image data
-  captions: jsonb("captions").notNull().$type<string[]>(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  userId: text("user_id"),
-  isLoggedOut: boolean("is_logged_out").default(false).notNull(),
+// Define the Image interface
+export interface IImage extends Document {
+  filename: string;
+  mimeType: string;
+  size: string;
+  url?: string;
+  data: string; // Store base64 encoded image data
+  captions: string[];
+  createdAt: Date;
+  userId?: string;
+  isLoggedOut: boolean;
+}
+
+// Create the Mongoose schema
+const imageSchema = new Schema<IImage>({
+  filename: { type: String, required: true },
+  mimeType: { type: String, required: true },
+  size: { type: String, required: true },
+  url: { type: String },
+  data: { type: String, required: true },
+  captions: { type: [String], required: true },
+  createdAt: { type: Date, default: Date.now },
+  userId: { type: String },
+  isLoggedOut: { type: Boolean, default: false },
 });
 
-export const insertImageSchema = createInsertSchema(images, {
-  id: undefined,
-  createdAt: undefined,
-});
+// Create and export the Mongoose model
+export const Image = model<IImage>('Image', imageSchema);
 
-// Update the upload schema to handle multer files
+// Zod schema for file upload validation
 export const uploadSchema = z.object({
   files: z.array(z.object({
     fieldname: z.string(),
@@ -35,5 +45,16 @@ export const uploadSchema = z.object({
   })).max(10, 'Maximum 10 files allowed'),
 });
 
+// Schema for inserting new images
+export const insertImageSchema = z.object({
+  filename: z.string(),
+  mimeType: z.string(),
+  size: z.string(),
+  url: z.string().optional(),
+  data: z.string(),
+  captions: z.array(z.string()),
+  userId: z.string().optional(),
+  isLoggedOut: z.boolean().default(false),
+});
+
 export type InsertImage = z.infer<typeof insertImageSchema>;
-export type Image = typeof images.$inferSelect;
