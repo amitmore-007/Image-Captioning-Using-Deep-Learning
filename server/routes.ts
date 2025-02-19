@@ -45,32 +45,61 @@ export function registerRoutes(app: Express) {
           // Convert buffer to base64 for storage
           const base64Data = file.buffer.toString('base64');
 
-          // Generate caption using HuggingFace API
-          let caption = "No caption generated";
+          // Generate caption using HuggingFace API (single call)
+          let caption;
           try {
+            // Current model - Fastest but less detailed
+            try {
+              const result = await hf.imageToText({
+                model: "Salesforce/blip-image-captioning-base",
+                data: file.buffer,
+                wait_for_model: true
+              });
+              caption = result.generated_text;
+            } catch (error) {
+              if (error.response?.status === 429) {
+                console.error("Rate limit exceeded");
+                throw new Error("Rate limit exceeded. Please try again later.");
+              }
+              throw error;
+            }
+
+
+            // Option 1 - More descriptive, good for social media (uncomment to use)
+            /*
             const result = await hf.imageToText({
-              model: "Salesforce/blip-image-captioning-base",
+              model: "microsoft/git-large-textcaps",
               data: file.buffer,
               wait_for_model: true
             });
-            caption = result.generated_text;
-          } catch (error: any) {
+            */
+
+            // Option 2 - Most accurate but slowest (uncomment to use)
+            /*
+            const result = await hf.imageToText({
+              model: "Salesforce/blip-image-captioning-large",
+              data: file.buffer,
+              wait_for_model: true
+            });
+            */
+
+          } catch (error) {
             console.error("Caption generation error:", error);
-            if (error.response?.status === 429) {
-              throw new Error("Rate limit exceeded. Please try again later.");
-            }
-            // Continue with default caption if HuggingFace fails
+            caption = "Failed to generate caption";
           }
 
+          // Create captions array with single caption
+          const uniqueCaptions = caption ? [caption] : ["No caption generated"];
+
           // Store image data
-          const userId = req.headers['user-id'] as string | undefined;
+          const userId = req.headers['user-id'] as string;
           const image = await storage.createImage({
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
             data: base64Data,
-            captions: caption ? [caption] : ['No caption generated'],
-            userId: userId,
+            captions: uniqueCaptions.length > 0 ? uniqueCaptions : ['No caption generated'],
+            userId: userId || null,
             isLoggedOut: !userId
           });
 
@@ -84,17 +113,16 @@ export function registerRoutes(app: Express) {
       res.json(results);
     } catch (error) {
       console.error("Failed to process images:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({ 
         message: "Failed to process images",
-        error: errorMessage
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
 
   app.get("/api/images/:id/preview", async (req, res) => {
     try {
-      const image = await storage.getImageById(req.params.id);
+      const image = await storage.getImageById(parseInt(req.params.id));
       if (!image || !image.data) {
         return res.status(404).json({ message: "Image not found" });
       }
@@ -110,7 +138,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/images", async (req, res) => {
     try {
-      const userId = req.headers['user-id'] as string | undefined;
+      const userId = req.headers['user-id'] as string;
       let images;
 
       if (!userId) {
@@ -130,7 +158,7 @@ export function registerRoutes(app: Express) {
 
   app.delete("/api/images/:id", async (req, res) => {
     try {
-      await storage.deleteImage(req.params.id);
+      await storage.deleteImage(parseInt(req.params.id));
       res.json({ message: "Image deleted" });
     } catch (error) {
       console.error("Failed to delete image:", error);

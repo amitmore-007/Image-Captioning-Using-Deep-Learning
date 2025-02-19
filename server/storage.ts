@@ -1,75 +1,89 @@
-import { Image, type IImage, type InsertImage } from "@shared/schema";
+import { images, type Image, type InsertImage } from "@shared/schema";
+import { db } from "./db";
+import { desc, eq, and, lt, gt } from "drizzle-orm";
 
 export interface IStorage {
-  createImage(image: InsertImage): Promise<IImage>;
-  getImageById(id: string): Promise<IImage | undefined>;
-  getAllImages(): Promise<IImage[]>;
-  deleteImage(id: string): Promise<void>;
+  createImage(image: InsertImage): Promise<Image>;
+  getImageById(id: number): Promise<Image | undefined>;
+  getAllImages(): Promise<Image[]>;
+  deleteImage(id: number): Promise<void>;
   deleteAllImages(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  private async withRetry<T>(operation: () => Promise<T>, retries = 3): Promise<T> {
-    let lastError;
-    for (let i = 0; i < retries; i++) {
-      try {
-        return await operation();
-      } catch (error) {
-        console.error(`Operation failed (attempt ${i + 1}/${retries}):`, error);
-        lastError = error;
-        if (i < retries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
-        }
-      }
-    }
-    throw lastError;
-  }
-
-  async createImage(insertImage: InsertImage): Promise<IImage> {
-    return this.withRetry(async () => {
-      const image = new Image({
+  async createImage(insertImage: InsertImage): Promise<Image> {
+    const [image] = await db
+      .insert(images)
+      .values({
         ...insertImage,
         captions: Array.isArray(insertImage.captions) ? insertImage.captions : [insertImage.captions],
-      });
-      return await image.save();
-    });
+      })
+      .returning();
+    return image;
   }
 
-  async getImageById(id: string): Promise<IImage | undefined> {
-    return this.withRetry(async () => {
-      const image = await Image.findById(id);
-      return image || undefined;
-    });
+  async getImageById(id: number): Promise<Image | undefined> {
+    const [image] = await db
+      .select()
+      .from(images)
+      .where(eq(images.id, id));
+    return image;
   }
 
-  async getAllImages(): Promise<IImage[]> {
-    return this.withRetry(async () => {
-      return await Image.find().sort({ createdAt: -1 });
-    });
+  async getAllImages(): Promise<Image[]> {
+    const allImages = await db
+      .select()
+      .from(images)
+      .orderBy(desc(images.createdAt));
+    return allImages;
   }
 
-  async deleteImage(id: string): Promise<void> {
-    await this.withRetry(async () => {
-      await Image.findByIdAndDelete(id);
-    });
+  async deleteImage(id: number): Promise<void> {
+    await db
+      .delete(images)
+      .where(eq(images.id, id));
   }
 
   async deleteAllImages(): Promise<void> {
-    await this.withRetry(async () => {
-      await Image.deleteMany({});
-    });
+    await db.delete(images);
   }
 
   async cleanupLoggedOutImages(): Promise<void> {
-    await this.withRetry(async () => {
-      await Image.deleteMany({ isLoggedOut: true });
-    });
+    // Old code with 10-minute condition
+    /*
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    await db.delete(images)
+      .where(and(
+        eq(images.isLoggedOut, true),
+        lt(images.createdAt, tenMinutesAgo)
+      ));
+    */
+    
+    // New code: delete logged out images immediately
+    await db.delete(images)
+      .where(eq(images.isLoggedOut, true));
   }
 
-  async getRecentLoggedOutImages(): Promise<IImage[]> {
-    return this.withRetry(async () => {
-      return await Image.find({ isLoggedOut: true }).sort({ createdAt: -1 });
-    });
+  async getRecentLoggedOutImages(): Promise<Image[]> {
+    // Old code with 10-minute condition
+    /*
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    return db.select()
+      .from(images)
+      .where(
+        and(
+          eq(images.isLoggedOut, true),
+          gt(images.createdAt, tenMinutesAgo)
+        )
+      )
+      .orderBy(desc(images.createdAt));
+    */
+    
+    // New code: return all logged out images (they will be cleaned up after upload)
+    return db.select()
+      .from(images)
+      .where(eq(images.isLoggedOut, true))
+      .orderBy(desc(images.createdAt));
   }
 }
 
