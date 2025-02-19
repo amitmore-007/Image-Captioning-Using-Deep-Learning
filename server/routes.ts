@@ -27,10 +27,13 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
+      console.log(`Processing ${files.length} files`); // Debug log
+
       // Validate the uploaded files using the schema
       const parseResult = uploadSchema.safeParse({ files });
 
       if (!parseResult.success) {
+        console.error('Upload validation failed:', parseResult.error); // Debug log
         return res.status(400).json({ 
           message: "Invalid upload",
           errors: parseResult.error.errors.map(err => ({
@@ -40,20 +43,24 @@ export function registerRoutes(app: Express) {
         });
       }
 
-      const results = await Promise.all(files.map(async (file) => {
+      const results = await Promise.all(files.map(async (file, index) => {
         try {
+          console.log(`Processing file ${index + 1}/${files.length}: ${file.originalname}`); // Debug log
+
           // Convert buffer to base64 for storage
           const base64Data = Buffer.from(file.buffer).toString('base64');
 
           // Generate caption using HuggingFace API
           let caption;
           try {
+            console.log(`Generating caption for ${file.originalname}`); // Debug log
             const result = await hf.imageToText({
               model: "Salesforce/blip-image-captioning-base",
               data: file.buffer,
               wait_for_model: true
             });
             caption = result.generated_text;
+            console.log(`Caption generated: ${caption}`); // Debug log
           } catch (error: any) {
             if (error.response?.status === 429) {
               console.error("Rate limit exceeded");
@@ -68,7 +75,9 @@ export function registerRoutes(app: Express) {
 
           // Store image data
           const userId = req.headers['user-id'] as string;
-          const image = await storage.createImage({
+          console.log(`Storing image in database: ${file.originalname}`); // Debug log
+
+          const imageData = {
             filename: file.originalname,
             mimeType: file.mimetype,
             size: file.size.toString(),
@@ -77,11 +86,14 @@ export function registerRoutes(app: Express) {
             userId: userId || null,
             isLoggedOut: !userId,
             url: null
-          });
+          };
+
+          const image = await storage.createImage(imageData);
+          console.log(`Image stored successfully with ID: ${image.id}`); // Debug log
 
           return image;
         } catch (error) {
-          console.error("Error processing file:", file.originalname, error);
+          console.error(`Error processing file ${file.originalname}:`, error);
           throw error;
         }
       }));

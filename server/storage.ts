@@ -1,6 +1,6 @@
 import { images, type Image, type InsertImage } from "@shared/schema";
 import { db } from "./db";
-import { desc, eq, and, lt, gt } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export interface IStorage {
   createImage(image: InsertImage): Promise<Image>;
@@ -8,53 +8,100 @@ export interface IStorage {
   getAllImages(): Promise<Image[]>;
   deleteImage(id: number): Promise<void>;
   deleteAllImages(): Promise<void>;
+  cleanupLoggedOutImages(): Promise<void>;
+  getRecentLoggedOutImages(): Promise<Image[]>;
 }
 
 export class DatabaseStorage implements IStorage {
   async createImage(insertImage: InsertImage): Promise<Image> {
-    const [image] = await db
-      .insert(images)
-      .values(insertImage)
-      .returning();
-    return image;
+    try {
+      console.log('Creating image in database with filename:', insertImage.filename); // Debug log
+      const [image] = await db
+        .insert(images)
+        .values(insertImage)
+        .returning();
+      console.log('Image created successfully with ID:', image.id); // Debug log
+      return image;
+    } catch (error) {
+      console.error('Error creating image in database:', error);
+      throw error;
+    }
   }
 
   async getImageById(id: number): Promise<Image | undefined> {
-    const [image] = await db
-      .select()
-      .from(images)
-      .where(eq(images.id, id));
-    return image;
+    try {
+      console.log('Fetching image with ID:', id); // Debug log
+      const [image] = await db
+        .select()
+        .from(images)
+        .where(eq(images.id, id));
+      console.log('Image fetch result:', image ? 'Found' : 'Not found'); // Debug log
+      return image;
+    } catch (error) {
+      console.error('Error fetching image:', error);
+      throw error;
+    }
   }
 
   async getAllImages(): Promise<Image[]> {
-    const allImages = await db
-      .select()
-      .from(images)
-      .orderBy(desc(images.createdAt));
-    return allImages;
+    try {
+      const allImages = await db
+        .select()
+        .from(images)
+        .orderBy(desc(images.createdAt));
+      console.log(`Fetched ${allImages.length} images`); // Debug log
+      return allImages;
+    } catch (error) {
+      console.error('Error fetching all images:', error);
+      throw error;
+    }
   }
 
   async deleteImage(id: number): Promise<void> {
-    await db
-      .delete(images)
-      .where(eq(images.id, id));
+    try {
+      await db
+        .delete(images)
+        .where(eq(images.id, id));
+      console.log('Image deleted successfully:', id); // Debug log
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      throw error;
+    }
   }
 
   async deleteAllImages(): Promise<void> {
-    await db.delete(images);
+    try {
+      await db.delete(images);
+      console.log('All images deleted successfully'); // Debug log
+    } catch (error) {
+      console.error('Error deleting all images:', error);
+      throw error;
+    }
   }
 
   async cleanupLoggedOutImages(): Promise<void> {
-    await db.delete(images)
-      .where(eq(images.isLoggedOut, true));
+    try {
+      await db.delete(images)
+        .where(eq(images.isLoggedOut, true));
+      console.log('Cleaned up logged out images'); // Debug log
+    } catch (error) {
+      console.error('Error cleaning up logged out images:', error);
+      throw error;
+    }
   }
 
   async getRecentLoggedOutImages(): Promise<Image[]> {
-    return db.select()
-      .from(images)
-      .where(eq(images.isLoggedOut, true))
-      .orderBy(desc(images.createdAt));
+    try {
+      const images = await db.select()
+        .from(images)
+        .where(eq(images.isLoggedOut, true))
+        .orderBy(desc(images.createdAt));
+      console.log(`Fetched ${images.length} recent logged out images`); // Debug log
+      return images;
+    } catch (error) {
+      console.error('Error fetching recent logged out images:', error);
+      throw error;
+    }
   }
 }
 
