@@ -19,7 +19,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-grow pt-24">
+      <div className="flex-grow pt-16 ">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
