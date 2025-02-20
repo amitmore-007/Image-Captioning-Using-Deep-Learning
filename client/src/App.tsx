@@ -13,7 +13,7 @@ import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 // import Reachout from "@/pages/reachout";
 import Reachout from "@/pages/contact";
-import PrivacyPolicy from "@/pages/privacy";
+// import PrivacyPolicy from "@/pages/privacy";
 
 function AppContent() {
   return (
@@ -26,7 +26,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reachout" element={<Reachout />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          {/* <Route path="/privacy-policy" element={<PrivacyPolicy />} /> */}
 
           {/* Protected routes */}
           <Route 
