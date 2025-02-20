@@ -11,8 +11,8 @@ import Home from "@/pages/home";
 import Landing from "@/pages/landing";
 import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
-import Reachout from "@/pages/reachout";
-// import Reachout from "@/pages/contact";
+// import Reachout from "@/pages/reachout";
+import Reachout from "@/pages/contact";
 
 function AppContent() {
   return (
