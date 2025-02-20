@@ -178,7 +178,7 @@ export function Navbar ()  {
             {["Privacy Policy", "Contact Us"].map((item) => {
               const path =
                 item === "Contact Us"
-                  ? "/reach-out"
+                  ? "/reachout"
                   : `/${item.toLowerCase().replace(" ", "-")}`;
               return (
                 <Link
