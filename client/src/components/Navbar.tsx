@@ -96,8 +96,8 @@ export function Navbar ()  {
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-500 py-3 ${
-        scrollPosition > 10
-          ? "bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 backdrop-blur-xl border-b border-white/10"
+        scrollPosition > 1
+          ? "bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 backdrop-blur-xl border-b border-white/100"
           : "bg-gradient-to-r from-blue-900/80 via-purple-900/80 to-indigo-900/80 backdrop-blur-sm"
       }`}
       onMouseMove={handleMouseMove}
